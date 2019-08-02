@@ -16,6 +16,7 @@ from mycroft.messagebus.message import Message
 from mycroft.util.log import getLogger
 import threading
 import collections
+import feedparser
 
 __author__ = 'aix'
 LOGGER = getLogger(__name__)
@@ -23,6 +24,8 @@ searchlst = {}
 soundlst = []
 searchlstobject = []
 baloosearchobj = []
+newsItemList = []
+newsItemObject = {}
 
 class AutoDashSkill(MycroftSkill):
     def __init__(self):
@@ -34,6 +37,8 @@ class AutoDashSkill(MycroftSkill):
     def initialize(self):
     # Initialize...
         self.add_event('soundcloud_Search', self.soundcloud_Search)
+        self.add_event('news_headlines', self.handle_get_latest_news_intent)
+        self.add_event('bbc_cast', self.handle_get_bbc_one_min_cast)
 
     @intent_handler(IntentBuilder("nav_dashboard").require("navDashboardKeyword").build())
     def nav_dashboard(self, message):
@@ -137,6 +142,33 @@ class AutoDashSkill(MycroftSkill):
         remote_object = bus.get_object("org.kde.autodashapplet", "/autodashapplet")
         remote_object.lcSearchResult(result, dbus_interface="org.kde.autodashapplet")
         
+    def handle_get_latest_news_intent(self, message):
+        """ 
+        Get News and Read Title
+        """
+        global newsItemList
+        global newsItemObject
+        getNewsLang = self.lang.split("-")
+        newsLang = getNewsLang[1]
+        newsAPIURL = 'https://newsapi.org/v2/top-headlines?country=in&apiKey=a1091945307b434493258f3dd6f36698'.format(newsLang)
+        newsAPIRespone = requests.get(newsAPIURL)
+        newsItems = newsAPIRespone.json()
+        bus = dbus.SessionBus()
+        remote_object = bus.get_object("org.kde.autodashapplet", "/autodashapplet")
+        remote_object.nwsSearchResult(newsItems, dbus_interface="org.kde.autodashapplet")
+
+    def handle_get_bbc_one_min_cast(self, message):
+        """
+        Get BBC One Min News Cast
+        """
+        rrsFeedURL = "http://wsrss.bbc.co.uk/bizdev/bbcminute/bbcminute.rss"
+        rrsFeedRespone = feedparser.parse(rrsFeedURL)
+        for item in rrsFeedRespone.entries:
+            playurl = item.links[0].href;
+        bus = dbus.SessionBus()
+        remote_object = bus.get_object("org.kde.autodashapplet", "/autodashapplet")
+        remote_object.castnwsSearchResult(playurl, dbus_interface="org.kde.autodashapplet")
+
     def stop(self):
         """
         Mycroft Stop Function
