@@ -1,0 +1,4 @@
+play radio station {stationname}
+tune to {stationname}
+turn on {stationname}
+play {stationname} 

@@ -1,0 +1,4 @@
+change map to mode {mapmode}
+switch the map to mode {mapmode}
+show map in {mapmode} mode
+switch to {mapmode} mode 

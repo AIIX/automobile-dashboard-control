@@ -1,0 +1,5 @@
+play music {songname}
+play {songname}
+play song {songname}
+play the song {songname}
+music play {songname} 
